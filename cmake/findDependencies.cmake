@@ -34,6 +34,9 @@ else()
     endif ()
 endif()
 
+if( EXIV2_ENABLE_HEIF )
+    find_package( HEIF REQUIRED )
+endif( )
 
 if (EXIV2_ENABLE_NLS)
     find_package(Intl REQUIRED)

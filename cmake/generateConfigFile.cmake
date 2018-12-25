@@ -21,6 +21,7 @@ endif()
 set(EXV_HAVE_ICONV       ${ICONV_FOUND})
 set(EXV_HAVE_LIBZ        ${ZLIB_FOUND})
 set(EXV_UNICODE_PATH     ${EXIV2_ENABLE_WIN_UNICODE})
+set(EXV_ENABLE_HEIF      ${EXIV2_ENABLE_HEIF})
 
 # TODO: Try to use the cmake function check_symbol_exists which is more robust
 check_function_exists( gmtime_r EXV_HAVE_GMTIME_R )

@@ -58,6 +58,7 @@ add_library( exiv2lib
     fff.h
     futils.cpp              ../include/exiv2/futils.hpp
     gifimage.cpp            ../include/exiv2/gifimage.hpp
+    heifimage.cpp           ../include/exiv2/heifimage.hpp
     http.cpp                ../include/exiv2/http.hpp
     image.cpp               ../include/exiv2/image.hpp
                             ../include/exiv2/image_types.hpp

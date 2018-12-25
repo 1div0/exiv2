@@ -20,6 +20,7 @@ else()
 endif()
 set(EXV_HAVE_ICONV       ${ICONV_FOUND})
 set(EXV_UNICODE_PATH     ${EXIV2_ENABLE_WIN_UNICODE})
+set(EXV_ENABLE_HEIF      ${EXIV2_ENABLE_HEIF})
 
 check_cxx_symbol_exists(gmtime_r    time.h         EXV_HAVE_GMTIME_R)
 check_cxx_symbol_exists(mmap        sys/mman.h     EXV_HAVE_MMAP )

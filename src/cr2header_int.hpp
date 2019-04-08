@@ -24,8 +24,7 @@
            <a href="mailto:ahuggel@gmx.net">ahuggel@gmx.net</a>
   @date    23-Apr-08, ahu: created
  */
-#ifndef CR2IMAGE_INT_HPP_
-#define CR2IMAGE_INT_HPP_
+#pragma once
 
 // *****************************************************************************
 // included header files
@@ -47,20 +46,18 @@ namespace Exiv2 {
         //! Default constructor
         explicit Cr2Header(ByteOrder byteOrder =littleEndian);
         //! Destructor.
-        ~Cr2Header();
+        ~Cr2Header() override;
         //@}
 
         //! @name Manipulators
         //@{
-        bool read(const byte* pData, uint32_t size);
+        bool read(const byte* pData, uint32_t size) override;
         //@}
 
         //! @name Accessors
         //@{
-        DataBuf write() const;
-        bool isImageTag(      uint16_t       tag,
-                              IfdId          group,
-                        const PrimaryGroups* pPrimaryGroups) const;
+        DataBuf write() const override;
+        bool isImageTag(uint16_t tag, IfdId group, const PrimaryGroups* pPrimaryGroups) const override;
         //@}
 
         //! Return the address of offset2 from the start of the header
@@ -73,5 +70,3 @@ namespace Exiv2 {
     }; // class Cr2Header
 
 }}                                      // namespace Internal, Exiv2
-
-#endif                                  // #ifndef CR2IMAGE_INT_HPP_

@@ -24,10 +24,11 @@
            <a href="mailto:ahuggel@gmx.net">ahuggel@gmx.net</a>
   @date    05-Feb-07, ahu: created
  */
-#ifndef RAFIMAGE_HPP_
-#define RAFIMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "image.hpp"
 #include "basicio.hpp"
@@ -42,11 +43,6 @@ namespace Exiv2 {
 
 // *****************************************************************************
 // class definitions
-
-    // Add RAF to the supported image formats
-    namespace ImageType {
-        const int raf = 8;          //!< RAF image type (see class RafImage)
-    }
 
     /*!
       @brief Class to access raw Fujifilm RAF images. Exif metadata is
@@ -76,47 +72,42 @@ namespace Exiv2 {
 
         //! @name Manipulators
         //@{
-        void printStructure(std::ostream& out, PrintStructureOption option,int depth);
-        void readMetadata();
+        void printStructure(std::ostream& out, PrintStructureOption option,int depth) override;
+        void readMetadata() override;
         /*!
           @brief Todo: Write metadata back to the image. This method is not
               yet implemented. Calling it will throw an Error(kerWritingImageFormatUnsupported).
          */
-        void writeMetadata();
+        void writeMetadata() override;
         /*!
           @brief Todo: Not supported yet, requires writeMetadata(). Calling
               this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setExifData(const ExifData& exifData);
+        void setExifData(const ExifData& exifData) override;
         /*!
           @brief Todo: Not supported yet, requires writeMetadata(). Calling
               this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setIptcData(const IptcData& iptcData);
+        void setIptcData(const IptcData& iptcData) override;
         /*!
           @brief Not supported. RAF format does not contain a comment.
               Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
+        void setComment(const std::string& comment) override;
         //@}
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
-        int pixelWidth() const;
-        int pixelHeight() const;
+        std::string mimeType() const override;
+        int pixelWidth() const override;
+        int pixelHeight() const override;
         //@}
 
-    private:
-        //! @name NOT implemented
-        //@{
-        //! Copy constructor
-        RafImage(const RafImage& rhs);
-        //! Assignment operator
-        RafImage& operator=(const RafImage& rhs);
-        //@}
-
-    }; // class RafImage
+        RafImage& operator=(const RafImage& rhs) = delete;
+        RafImage& operator=(const RafImage&& rhs) = delete;
+        RafImage(const RafImage& rhs) = delete;
+        RafImage(const RafImage&& rhs) = delete;
+    };  // class RafImage
 
 // *****************************************************************************
 // template, inline and free functions
@@ -134,5 +125,3 @@ namespace Exiv2 {
     EXIV2API bool isRafType(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef RAFIMAGE_HPP_

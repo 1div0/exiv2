@@ -28,17 +28,13 @@
            <a href="mailto:caulier dot gilles at gmail dot com">caulier dot gilles at gmail dot com</a>
   @date    12-Jun-06, gc: submitted
  */
-#ifndef PNGIMAGE_HPP_
-#define PNGIMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "image.hpp"
-#include "basicio.hpp"
-#include "types.hpp"
-
-// + standard includes
-#include <string>
 
 // *****************************************************************************
 // namespace extensions
@@ -47,12 +43,6 @@ namespace Exiv2
 
 // *****************************************************************************
 // class definitions
-
-    // Add PNG to the supported image formats
-    namespace ImageType
-    {
-        const int png = 6;          //!< PNG image type (see class PngImage)
-    }
 
     /*!
       @brief Class to access PNG images. Exif and IPTC metadata are supported
@@ -82,8 +72,8 @@ namespace Exiv2
 
         //! @name Manipulators
         //@{
-        void readMetadata();
-        void writeMetadata();
+        void readMetadata() override;
+        void writeMetadata() override;
 
         /*!
           @brief Print out the structure of image file.
@@ -91,21 +81,20 @@ namespace Exiv2
                 not valid (does not look like data of the specific image type).
           @warning This function is not thread safe and intended for exiv2 -pS for debugging.
          */
-        void printStructure(std::ostream& out, PrintStructureOption option,int depth);
+        void printStructure(std::ostream& out, PrintStructureOption option,int depth) override;
         //@}
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
+        std::string mimeType() const override;
         //@}
 
+        PngImage& operator=(const PngImage& rhs) = delete;
+        PngImage& operator=(const PngImage&& rhs) = delete;
+        PngImage(const PngImage& rhs) = delete;
+        PngImage(const PngImage&& rhs) = delete;
+
     private:
-        //! @name NOT implemented
-        //@{
-        //! Copy constructor
-        PngImage(const PngImage& rhs);
-        //! Assignment operator
-        PngImage& operator=(const PngImage& rhs);
         /*!
           @brief Provides the main implementation of writeMetadata() by
                 writing all buffered metadata to the provided BasicIo.
@@ -115,6 +104,8 @@ namespace Exiv2
          */
         void doWriteMetadata(BasicIo& oIo);
         //@}
+
+        std::string profileName_;
 
     }; // class PngImage
 
@@ -134,5 +125,3 @@ namespace Exiv2
     EXIV2API bool isPngType(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef PNGIMAGE_HPP_

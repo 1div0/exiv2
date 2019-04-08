@@ -17,12 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, 5th Floor, Boston, MA 02110-1301 USA.
  */
-/*
-  File:      futils.cpp
-  Author(s): Andreas Huggel (ahu) <ahuggel@gmx.net>
-  History:   08-Dec-03, ahu: created
-             02-Apr-05, ahu: moved to Exiv2 namespace
- */
 // *****************************************************************************
 // included header files
 #include "config.h"
@@ -33,32 +27,25 @@
 // + standard includes
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#ifdef _MSC_VER
-    #include <Windows.h>
-    # define S_ISREG(m)      (((m) & S_IFMT) == S_IFREG)
-    #include <psapi.h>  // For access to GetModuleFileNameEx
-#elif defined(__APPLE__)
-    #include <libproc.h>
-#endif
-
-#ifdef EXV_HAVE_UNISTD_H
-  # include <unistd.h>                     // for stat()
-#endif
-
 #include <cstdio>
 #include <cerrno>
 #include <sstream>
 #include <cstring>
 #include <algorithm>
 #include <stdexcept>
-
-#ifdef EXV_HAVE_STRERROR_R
-#if defined(__GLIBC__) && defined(_GNU_SOURCE)
-extern char *strerror_r(int errnum, char *buf, size_t n);
-#else
-extern int strerror_r(int errnum, char *buf, size_t n);
+#ifdef   EXV_HAVE_UNISTD_H
+#include <unistd.h>                     // for stat()
 #endif
+
+#if defined(WIN32)
+#include <windows.h>
+#include <psapi.h>  // For access to GetModuleFileNameEx
+#endif
+
+#if defined(_MSC_VER)
+#define S_ISREG(m)      (((m) & S_IFMT) == S_IFREG)
+#elif defined(__APPLE__)
+#include <libproc.h>
 #endif
 
 namespace Exiv2 {
@@ -139,15 +126,13 @@ namespace Exiv2 {
         const uint8_t* data = (const uint8_t*)data_buf;
         size_t resultIndex = 0;
         size_t x;
-        uint32_t n = 0;
         size_t padCount = dataLength % 3;
-        uint8_t n0, n1, n2, n3;
 
         /* increment over the length of the string, three characters at a time */
         for (x = 0; x < dataLength; x += 3)
         {
             /* these three 8-bit (ASCII) characters become one 24-bit number */
-            n = data[x] << 16;
+            uint32_t n = data[x] << 16;
 
             if((x+1) < dataLength)
                 n += data[x+1] << 8;
@@ -156,10 +141,10 @@ namespace Exiv2 {
                 n += data[x+2];
 
             /* this 24-bit number gets separated into four 6-bit numbers */
-            n0 = (uint8_t)(n >> 18) & 63;
-            n1 = (uint8_t)(n >> 12) & 63;
-            n2 = (uint8_t)(n >> 6) & 63;
-            n3 = (uint8_t)n & 63;
+            uint8_t n0 = (uint8_t)(n >> 18) & 63;
+            uint8_t n1 = (uint8_t)(n >> 12) & 63;
+            uint8_t n2 = (uint8_t)(n >> 6) & 63;
+            uint8_t n3 = (uint8_t)n & 63;
 
             /*
             * if we have one byte available, then its encoding is spread
@@ -211,14 +196,13 @@ namespace Exiv2 {
     long base64decode(const char *in, char *out, size_t out_size) {
         static const char decode[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW"
                          "$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
-        long len;
         long i;
         long done = 0;
         unsigned char v;
         unsigned char quad[4];
 
         while (*in) {
-            len = 0;
+            long len = 0;
             for (i = 0; i < 4 && *in; i++) {
                 v = 0;
                 while (*in && !v) {
@@ -348,7 +332,7 @@ namespace Exiv2 {
         std::ostringstream os;
 #ifdef EXV_HAVE_STRERROR_R
         const size_t n = 1024;
-#if defined(__GLIBC__) && defined(_GNU_SOURCE)
+#ifdef EXV_STRERROR_R_CHAR_P
         char *buf = 0;
         char buf2[n];
         std::memset(buf2, 0x0, n);
@@ -479,7 +463,7 @@ namespace Exiv2 {
         if (proc_pidpath (pid, pathbuf, sizeof(pathbuf)) > 0) {
             ret = pathbuf;
         }
-    #elif defined(__linux__) || defined(__CYGWIN__) || defined(__MINGW__)
+    #elif defined(__linux__) || defined(__CYGWIN__) || defined(__MSYS__)
         // http://stackoverflow.com/questions/606041/how-do-i-get-the-path-of-a-process-in-unix-linux
         char proc[100];
         char path[500];
@@ -490,11 +474,8 @@ namespace Exiv2 {
             ret = path;
         }
     #endif
-    #if defined(WIN32)
-        const size_t idxLastSeparator = ret.find_last_of('\\');
-    #else
-        const size_t idxLastSeparator = ret.find_last_of('/');
-    #endif
+
+        const size_t idxLastSeparator = ret.find_last_of(EXV_SEPARATOR_STR);
         return ret.substr(0, idxLastSeparator);
     }
 }                                       // namespace Exiv2

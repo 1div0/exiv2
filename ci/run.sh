@@ -21,8 +21,7 @@ fi
 if [[ "$(uname -s)" == 'Linux' ]]; then
     source conan/bin/activate
 else
-    export CMAKE_OPTIONS="$CMAKE_OPTIONS -DEXIV2_ENABLE_NLS=OFF"
-    export PYENV_VERSION=$PYTHON
+    export CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_PREFIX_PATH=/usr/local/opt/gettext/"
     export PATH="/Users/travis/.pyenv/shims:${PATH}"
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
@@ -31,7 +30,7 @@ fi
 
 
 mkdir build && cd build
-conan install .. --build missing
+conan install .. -o webready=True --build missing
 
 cmake ${CMAKE_OPTIONS} ..
 make -j2
@@ -55,4 +54,3 @@ popd
 if [ -n "$WITH_COVERAGE" ]; then
     bash <(curl -s https://codecov.io/bash)
 fi
-

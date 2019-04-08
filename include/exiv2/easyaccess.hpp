@@ -23,10 +23,11 @@
   @author  Carsten Pfeiffer <pfeiffer@kde.org>
   @date    28-Feb-09, gis: created
  */
-#ifndef EASYACCESS_HPP_
-#define EASYACCESS_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "exif.hpp"
 
@@ -82,5 +83,3 @@ namespace Exiv2 {
     EXIV2API ExifData::const_iterator afPoint(const ExifData& ed);
 
 } // namespace Exiv2
-
-#endif // EASYACCESS_HPP_

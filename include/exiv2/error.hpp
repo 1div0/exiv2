@@ -25,18 +25,17 @@
   @date    15-Jan-04, ahu: created<BR>
            11-Feb-04, ahu: isolated as a component
  */
-#ifndef ERROR_HPP_
-#define ERROR_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "types.hpp"
 
 // + standard includes
 #include <exception>
 #include <string>
-#include <iosfwd>
-#include <sstream>
 
 // *****************************************************************************
 // namespace extensions
@@ -73,11 +72,12 @@ namespace Exiv2 {
              make that call any logic that always needs to be executed.
      */
     class EXIV2API LogMsg {
-        //! Prevent copy-construction: not implemented.
-        LogMsg(const LogMsg&);
-        //! Prevent assignment: not implemented.
-        LogMsg& operator=(const LogMsg&);
     public:
+        LogMsg& operator=(const LogMsg& rhs) = delete;
+        LogMsg& operator=(const LogMsg&& rhs) = delete;
+        LogMsg(const LogMsg& rhs) = delete;
+        LogMsg(const LogMsg&& rhs) = delete;
+
         /*!
           @brief Defined log levels. To suppress all log messages, either set the
                  log level to \c mute or set the log message handler to 0.
@@ -285,18 +285,18 @@ namespace Exiv2 {
 
         //! @name Accessors
         //@{
-        virtual int code() const noexcept;
+        int code() const noexcept override;
         /*!
           @brief Return the error message as a C-string. The pointer returned by what()
                  is valid only as long as the BasicError object exists.
          */
-        virtual const char* what() const noexcept;
+        const char* what() const noexcept override;
 #ifdef EXV_UNICODE_PATH
         /*!
           @brief Return the error message as a wchar_t-string. The pointer returned by
                  wwhat() is valid only as long as the BasicError object exists.
          */
-        virtual const wchar_t* wwhat() const noexcept;
+        const wchar_t* wwhat() const noexcept;
 #endif
         //@}
 
@@ -315,7 +315,7 @@ namespace Exiv2 {
         std::basic_string<charT> arg3_;         //!< Third argument
         std::string              msg_;          //!< Complete error message
 #ifdef EXV_UNICODE_PATH
-    std::wstring             wmsg_;         //!< Complete error message as a wide string
+        std::wstring             wmsg_;         //!< Complete error message as a wide string
 #endif
     }; // class BasicError
 
@@ -389,9 +389,9 @@ namespace Exiv2 {
         return wmsg_.c_str();
     }
 #endif
+
 #ifdef _MSC_VER
 # pragma warning( default : 4275 )
 #endif
 
 }                                       // namespace Exiv2
-#endif                                  // #ifndef ERROR_HPP_

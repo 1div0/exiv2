@@ -28,6 +28,7 @@
 // included header files
 #include "config.h"
 #include "types.hpp"
+#include "error.hpp"
 #include "exif.hpp"
 #include "iptc.hpp"
 #include "xmp_exiv2.hpp"
@@ -295,7 +296,6 @@ namespace Exiv2 {
         bool prepareIptcTarget(const char* to, bool force =false);
         bool prepareXmpTarget(const char* to, bool force =false);
         std::string computeExifDigest(bool tiff);
-        std::string computeIptcDigest();
 
         // DATA
         static const Conversion conversion_[];  //<! Conversion rules
@@ -1256,29 +1256,6 @@ namespace Exiv2 {
         }
     }
 
-    std::string Converter::computeIptcDigest()
-    {
-#ifdef EXV_HAVE_XMP_TOOLKIT
-        std::ostringstream res;
-        MD5_CTX context;
-        unsigned char digest[16];
-
-        MD5Init(&context);
-
-        DataBuf data = IptcParser::encode(*iptcData_);
-        MD5Update(&context, data.pData_, data.size_);
-        MD5Final(digest, &context);
-        res << std::setw(2) << std::setfill('0') << std::hex << std::uppercase;
-        for (int i = 0; i < 16; ++i) {
-            res << static_cast<int>(digest[i]);
-        }
-        return res.str();
-#else
-        return std::string("");
-#endif
-    }
-
-
     // *************************************************************************
     // free functions
     void copyExifToXmp(const ExifData& exifData, XmpData& xmpData)
@@ -1388,7 +1365,8 @@ namespace {
 
     bool mb2wc(UINT cp, std::string& str)
     {
-        if (str.empty()) return true;
+        if (str.empty())
+            return true;
         int len = MultiByteToWideChar(cp, 0, str.c_str(), (int)str.size(), 0, 0);
         if (len == 0) {
 #ifdef DEBUG
@@ -1397,21 +1375,22 @@ namespace {
             return false;
         }
         std::vector<std::string::value_type> out;
-        out.resize(len * 2);
-        int ret = MultiByteToWideChar(cp, 0, str.c_str(), (int)str.size(), (LPWSTR)&out[0], len * 2);
+        out.reserve(len * 2);
+        int ret = MultiByteToWideChar(cp, 0, str.c_str(), (int)str.size(), (LPWSTR)out.data(), len * 2);
         if (ret == 0) {
 #ifdef DEBUG
             EXV_DEBUG << "mb2wc: Failed to convert the input string to a wide character string.\n";
 #endif
             return false;
         }
-        str.assign(out.begin(), out.end());
+        str.assign(out.data(), static_cast<size_t>(len) * 2);
         return true;
     }
 
     bool wc2mb(UINT cp, std::string& str)
     {
-        if (str.empty()) return true;
+        if (str.empty())
+            return true;
         if (str.size() & 1) {
 #ifdef DEBUG
             EXV_DEBUG << "wc2mb: Size " << str.size() << " of input string is not even.\n";
@@ -1426,15 +1405,15 @@ namespace {
             return false;
         }
         std::vector<std::string::value_type> out;
-        out.resize(len);
-        int ret = WideCharToMultiByte(cp, 0, (LPCWSTR)str.data(), (int)str.size() / 2, (LPSTR)&out[0], len, 0, 0);
+        out.reserve(len);
+        int ret = WideCharToMultiByte(cp, 0, (LPCWSTR)str.data(), (int)str.size() / 2, (LPSTR)out.data(), len, 0, 0);
         if (ret == 0) {
 #ifdef DEBUG
             EXV_DEBUG << "wc2mb: Failed to convert the input string to a multi byte string.\n";
 #endif
             return false;
         }
-        str.assign(out.begin(), out.end());
+        str.assign(out.data(), static_cast<size_t>(len));
         return true;
     }
 

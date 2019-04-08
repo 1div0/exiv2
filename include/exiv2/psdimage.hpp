@@ -27,18 +27,13 @@
            <a href="mailto:mul@rentapacs.de">mul@rentapacs.de</a>
   @date    05-Mar-2007, marco: created
  */
-#ifndef PSDIMAGE_HPP_
-#define PSDIMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
-// included header files
-#include "exif.hpp"
-#include "iptc.hpp"
-#include "image.hpp"
-#include "types.hpp"
+#include "exiv2lib_export.h"
 
-// + standard includes
-#include <string>
+// included header files
+#include "image.hpp"
 
 // *****************************************************************************
 // namespace extensions
@@ -47,24 +42,16 @@ namespace Exiv2 {
 // *****************************************************************************
 // class definitions
 
-    // Add PSD to the supported image formats
-    namespace ImageType {
-        const int psd = 12; //!< Photoshop (PSD) image type (see class PsdImage)
-    }
-
     /*!
       @brief Class to access raw Photoshop images.
      */
     class EXIV2API PsdImage : public Image {
-        //! @name NOT Implemented
-        //@{
-        //! Copy constructor
-        PsdImage(const PsdImage& rhs);
-        //! Assignment operator
-        PsdImage& operator=(const PsdImage& rhs);
-        //@}
-
     public:
+        PsdImage& operator=(const PsdImage& rhs) = delete;
+        PsdImage& operator=(const PsdImage&& rhs) = delete;
+        PsdImage(const PsdImage& rhs) = delete;
+        PsdImage(const PsdImage&& rhs) = delete;
+
         //! @name Creators
         //@{
         /*!
@@ -84,12 +71,12 @@ namespace Exiv2 {
 
         //! @name Manipulators
         //@{
-        void readMetadata();
-        void writeMetadata();
+        void readMetadata() override;
+        void writeMetadata() override;
         /*!
           @brief Not supported. Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
+        void setComment(const std::string& comment) override;
         //@}
 
         //! @name Accessors
@@ -105,7 +92,7 @@ namespace Exiv2 {
               but Apple, as of Tiger (10.4.8), maps this official MIME type to a
               dynamic UTI, rather than "com.adobe.photoshop-image" as it should.
          */
-        std::string mimeType() const;
+        std::string mimeType() const override;
         //@}
 
     private:
@@ -147,5 +134,3 @@ namespace Exiv2 {
     EXIV2API bool isPsdType(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef PSDIMAGE_HPP_

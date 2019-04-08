@@ -24,8 +24,7 @@
            <a href="mailto:ahuggel@gmx.net">ahuggel@gmx.net</a>
   @date    28-Aug-05, ahu: created
  */
-#ifndef CRWIMAGE_INT_HPP_
-#define CRWIMAGE_INT_HPP_
+#pragma once
 
 // *****************************************************************************
 // included header files
@@ -258,7 +257,7 @@ namespace Exiv2 {
         //! @name Manipulators
         //@{
         //! Implements add()
-        virtual void doAdd(UniquePtr component) =0;
+        virtual void doAddComponent(UniquePtr component) =0;
         //! Implements add(). The default implementation does nothing.
         virtual CiffComponent* doAdd(CrwDirs& crwDirs, uint16_t crwTagId);
         //! Implements remove(). The default implementation does nothing.
@@ -319,7 +318,7 @@ namespace Exiv2 {
         CiffEntry(uint16_t tag, uint16_t dir) : CiffComponent(tag, dir) {}
 
         //! Virtual destructor.
-        virtual ~CiffEntry();
+        ~CiffEntry() override;
         //@}
 
         // Default assignment operator is fine
@@ -327,22 +326,19 @@ namespace Exiv2 {
     private:
         //! @name Manipulators
         //@{
-        using CiffComponent::doAdd;
         // See base class comment
-        virtual void doAdd(UniquePtr component);
+        void doAddComponent(UniquePtr component) override;
         /*!
           @brief Implements write(). Writes only the value data of the entry,
                  using writeValueData().
          */
-        virtual uint32_t doWrite(Blob&     blob,
-                                 ByteOrder byteOrder,
-                                 uint32_t  offset);
+        uint32_t doWrite(Blob& blob, ByteOrder byteOrder, uint32_t offset) override;
         //@}
 
         //! @name Accessors
         //@{
         // See base class comment
-        virtual void doDecode(Image& image, ByteOrder byteOrder) const;
+        void doDecode(Image& image, ByteOrder byteOrder) const override;
         //@}
 
     }; // class CiffEntry
@@ -358,7 +354,7 @@ namespace Exiv2 {
         CiffDirectory(uint16_t tag, uint16_t dir) : CiffComponent(tag, dir), cc_(nullptr) {}
 
         //! Virtual destructor
-        virtual ~CiffDirectory();
+        ~CiffDirectory() override;
         //@}
 
         //! @name Manipulators
@@ -381,42 +377,33 @@ namespace Exiv2 {
         //! @name Manipulators
         //@{
         // See base class comment
-        virtual void doAdd(UniquePtr component);
+        void doAddComponent(UniquePtr component) override;
         // See base class comment
-        virtual CiffComponent* doAdd(CrwDirs& crwDirs, uint16_t crwTagId);
+        CiffComponent* doAdd(CrwDirs& crwDirs, uint16_t crwTagId) override;
         // See base class comment
-        virtual void doRemove(CrwDirs& crwDirs, uint16_t crwTagId);
+        void doRemove(CrwDirs& crwDirs, uint16_t crwTagId) override;
         /*!
           @brief Implements write(). Writes the complete Ciff directory to
                  the blob.
          */
-        virtual uint32_t doWrite(Blob&     blob,
-                                 ByteOrder byteOrder,
-                                 uint32_t  offset);
+        uint32_t doWrite(Blob& blob, ByteOrder byteOrder, uint32_t offset) override;
         // See base class comment
-        virtual void doRead(const byte* pData,
-                            uint32_t    size,
-                            uint32_t    start,
-                            ByteOrder   byteOrder);
+        void doRead(const byte* pData, uint32_t size, uint32_t start, ByteOrder byteOrder) override;
         //@}
 
         //! @name Accessors
         //@{
         // See base class comment
-        virtual void doDecode(Image&    image,
-                              ByteOrder byteOrder) const;
+        void doDecode(Image& image, ByteOrder byteOrder) const override;
 
         // See base class comment
-        virtual void doPrint(std::ostream&      os,
-                             ByteOrder          byteOrder,
-                             const std::string& prefix) const;
+        void doPrint(std::ostream& os, ByteOrder byteOrder, const std::string& prefix) const override;
 
         //! See base class comment. A directory is empty if it has no components.
-        virtual bool doEmpty() const;
+        bool doEmpty() const override;
 
         // See base class comment
-        virtual CiffComponent* doFindComponent(uint16_t crwTagId,
-                                               uint16_t crwDir) const;
+        CiffComponent* doFindComponent(uint16_t crwTagId, uint16_t crwDir) const override;
         //@}
 
     private:
@@ -526,7 +513,8 @@ namespace Exiv2 {
 
     private:
         // DATA
-        static const char signature_[];   //!< Canon CRW signature "HEAPCCDR"
+        static constexpr char signature_[]{
+            'H', 'E', 'A', 'P', 'C', 'C', 'D', 'R', '\0' };   //!< Canon CRW signature "HEAPCCDR"
 
         CiffDirectory*    pRootDir_;      //!< Pointer to the root directory
         ByteOrder         byteOrder_;     //!< Applicable byte order
@@ -584,13 +572,9 @@ namespace Exiv2 {
              to image metadata and vice versa
      */
     class CrwMap {
-        //! @name Not implemented
-        //@{
-        //! Default constructor
-        CrwMap();
-        //@}
-
     public:
+        CrwMap() = delete;
+
         /*!
           @brief Decode image metadata from a CRW entry, convert and add it
                  to the image metadata. This function converts only one CRW
@@ -744,5 +728,3 @@ namespace Exiv2 {
                             ByteOrder byteOrder);
 
 }}                                      // namespace Internal, Exiv2
-
-#endif                                  // #ifndef CRWIMAGE_INT_HPP_

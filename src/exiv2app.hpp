@@ -24,8 +24,7 @@
            <a href="mailto:ahuggel@gmx.net">ahuggel@gmx.net</a>
   @date    08-Dec-03, ahu: created
  */
-#ifndef EXIV2APP_HPP_
-#define EXIV2APP_HPP_
+#pragma once
 
 // *****************************************************************************
 // included header files
@@ -293,9 +292,13 @@ private:
         yodAdjust_[yodDay]   = emptyYodAdjust_[yodDay];
     }
 
-    //! Prevent copy-construction: not implemented.
-    Params(const Params& rhs);
+public:
+    Params& operator=(const Params& rhs) = delete;
+    Params& operator=(const Params&& rhs) = delete;
+    Params(const Params& rhs) = delete;
+    Params(const Params&& rhs) = delete;
 
+private:
     //! Destructor, frees any allocated regexes in greps_
     ~Params();
 
@@ -329,10 +332,10 @@ public:
     int getopt(int argc, char* const argv[]);
 
     //! Handle options and their arguments.
-    virtual int option(int opt, const std::string& optarg, int optopt);
+    int option(int opt, const std::string& optarg, int optopt) override;
 
     //! Handle non-option parameters.
-    virtual int nonoption(const std::string& argv);
+    int nonoption(const std::string& argv) override;
 
     //! Print a minimal usage note to an output stream.
     void usage(std::ostream& os =std::cout) const;
@@ -343,9 +346,6 @@ public:
     //! Print version information to an output stream.
     void version(bool verbose =false, std::ostream& os =std::cout) const;
 
-    //! Print target_
-    static std::string printTarget(const std::string& before,int target,bool bPrint=false,std::ostream& os=std::cout);
-
     //! getStdin binary data read from stdin to DataBuf
     /*
         stdin can be used by multiple images in the exiv2 command line:
@@ -354,5 +354,3 @@ public:
     void getStdin(Exiv2::DataBuf& buf);
 
 }; // class Params
-
-#endif                                  // #ifndef EXIV2APP_HPP_

@@ -35,10 +35,13 @@
 #include <string>
 #include <memory>
 #include <iostream>
-#include <cstring>
+#include <cstring>                      // std::memcpy
 #include <cassert>
+#include <fstream>                      // write the temporary file
+#include <fcntl.h>                      // _O_BINARY in FileIo::FileIo
 #include <cstdio>                       // for remove, rename
 #include <cstdlib>                      // for alloc, realloc, free
+#include <ctime>                        // timestamp for the name of temporary file
 #include <sys/types.h>                  // for stat, chmod
 #include <sys/stat.h>                   // for stat, chmod
 
@@ -84,10 +87,10 @@ namespace Exiv2 {
     class FileIo::Impl {
     public:
         //! Constructor
-        Impl(const std::string& path);
+        explicit Impl(const std::string& path);
 #ifdef EXV_UNICODE_PATH
         //! Constructor accepting a unicode path in an std::wstring
-        Impl(const std::wstring& wpath);
+        explicit Impl(const std::wstring& wpath);
 #endif
         // Enumerations
         //! Mode of operation
@@ -140,11 +143,10 @@ namespace Exiv2 {
         DWORD winNumberOfLinks() const;
 #endif
 
-    private:
-        // NOT IMPLEMENTED
-        Impl(const Impl& rhs);                         //!< Copy constructor
-        Impl& operator=(const Impl& rhs);              //!< Assignment
-
+        Impl& operator=(const Impl& rhs) = delete;
+        Impl& operator=(const Impl&& rhs) = delete;
+        Impl(const Impl& rhs) = delete;
+        Impl(const Impl&& rhs) = delete;
     }; // class FileIo::Impl
 
     FileIo::Impl::Impl(const std::string& path)
@@ -175,31 +177,36 @@ namespace Exiv2 {
 #endif
     int FileIo::Impl::switchMode(OpMode opMode)
     {
-        assert(fp_ != 0);
-        if (opMode_ == opMode) return 0;
+        if (fp_ == nullptr)
+            return 1;
+        if (opMode_ == opMode)
+            return 0;
         OpMode oldOpMode = opMode_;
         opMode_ = opMode;
 
         bool reopen = true;
-        switch(opMode) {
-        case opRead:
-            // Flush if current mode allows reading, else reopen (in mode "r+b"
-            // as in this case we know that we can write to the file)
-            if (openMode_[0] == 'r' || openMode_[1] == '+') reopen = false;
-            break;
-        case opWrite:
-            // Flush if current mode allows writing, else reopen
-            if (openMode_[0] != 'r' || openMode_[1] == '+') reopen = false;
-            break;
-        case opSeek:
-            reopen = false;
-            break;
+        switch (opMode) {
+            case opRead:
+                // Flush if current mode allows reading, else reopen (in mode "r+b"
+                // as in this case we know that we can write to the file)
+                if (openMode_[0] == 'r' || openMode_[1] == '+')
+                    reopen = false;
+                break;
+            case opWrite:
+                // Flush if current mode allows writing, else reopen
+                if (openMode_[0] != 'r' || openMode_[1] == '+')
+                    reopen = false;
+                break;
+            case opSeek:
+                reopen = false;
+                break;
         }
 
         if (!reopen) {
-            // Don't do anything when switching _from_ opSeek mode; we
+            // Do not do anything when switching _from_ opSeek mode; we
             // flush when switching _to_ opSeek.
-            if (oldOpMode == opSeek) return 0;
+            if (oldOpMode == opSeek)
+                return 0;
 
             // Flush. On msvcrt fflush does not do the job
             std::fseek(fp_, 0, SEEK_CUR);
@@ -208,26 +215,24 @@ namespace Exiv2 {
 
         // Reopen the file
         long offset = std::ftell(fp_);
-        if (offset == -1) return -1;
+        if (offset == -1)
+            return -1;
         // 'Manual' open("r+b") to avoid munmap()
-        if (fp_ != 0) {
-            std::fclose(fp_);
-            fp_= 0;
-        }
+        std::fclose(fp_);
         openMode_ = "r+b";
         opMode_ = opSeek;
 #ifdef EXV_UNICODE_PATH
         if (wpMode_ == wpUnicode) {
             fp_ = ::_wfopen(wpath_.c_str(), s2ws(openMode_).c_str());
-        }
-        else
+        } else
 #endif
         {
             fp_ = std::fopen(path_.c_str(), openMode_.c_str());
         }
-        if (!fp_) return 1;
+        if (fp_ == nullptr)
+            return 1;
         return std::fseek(fp_, offset, SEEK_SET);
-    } // FileIo::Impl::switchMode
+    }  // FileIo::Impl::switchMode
 
     int FileIo::Impl::stat(StructStat& buf) const
     {
@@ -587,10 +592,10 @@ namespace Exiv2 {
 
         byte buf[4096];
         long readCount = 0;
-        long writeCount = 0;
         long writeTotal = 0;
         while ((readCount = src.read(buf, sizeof(buf)))) {
-            writeTotal += writeCount = (long)std::fwrite(buf, 1, readCount, p_->fp_);
+            const long writeCount = static_cast<long>(std::fwrite(buf, 1, static_cast<size_t>(readCount), p_->fp_));
+            writeTotal += writeCount;
             if (writeCount != readCount) {
                 // try to reset back to where write stopped
                 src.seek(writeCount-readCount, BasicIo::cur);
@@ -1063,12 +1068,11 @@ namespace Exiv2 {
         // METHODS
         void reserve(long wcount);         //!< Reserve memory
 
-    private:
-        // NOT IMPLEMENTED
-        Impl(const Impl& rhs);             //!< Copy constructor
-        Impl& operator=(const Impl& rhs);  //!< Assignment
-
-    }; // class MemIo::Impl
+        Impl& operator=(const Impl& rhs) = delete;
+        Impl& operator=(const Impl&& rhs) = delete;
+        Impl(const Impl& rhs) = delete;
+        Impl(const Impl&& rhs) = delete;
+    };  // class MemIo::Impl
 
     MemIo::Impl::Impl()
         : data_(0),
@@ -1365,9 +1369,13 @@ namespace Exiv2 {
     {
         long avail = EXV_MAX(p_->size_ - p_->idx_, 0);
         long allow = EXV_MIN(rcount, avail);
+        if (p_->data_ == nullptr) {
+            throw Error(kerCallFailed, "std::memcpy with src == nullptr");
+        }
         std::memcpy(buf, &p_->data_[p_->idx_], allow);
         p_->idx_ += allow;
-        if (rcount > avail) p_->eof_ = true;
+        if (rcount > avail)
+            p_->eof_ = true;
         return allow;
     }
 
@@ -1927,8 +1935,8 @@ namespace Exiv2 {
 
     byte* RemoteIo::mmap(bool /*isWriteable*/)
     {
-        size_t nRealData = 0 ;
         if ( !bigBlock_ ) {
+            size_t nRealData = 0 ;
             size_t blockSize = p_->blockSize_;
             size_t blocks = (p_->size_ + blockSize -1)/blockSize ;
             bigBlock_   = new byte[blocks*blockSize] ;
@@ -2041,15 +2049,17 @@ namespace Exiv2 {
           @throw Error if it fails.
          */
         void writeRemote(const byte* data, size_t size, long from, long to);
-    protected:
-        // NOT IMPLEMENTED
-        HttpImpl(const HttpImpl& rhs); //!< Copy constructor
-        HttpImpl& operator=(const HttpImpl& rhs); //!< Assignment
-    }; // class HttpIo::HttpImpl
 
-    HttpIo::HttpImpl::HttpImpl(const std::string& url, size_t blockSize):Impl(url, blockSize)
+        HttpImpl& operator=(const HttpImpl& rhs) = delete;
+        HttpImpl& operator=(const HttpImpl&& rhs) = delete;
+        HttpImpl(const HttpImpl& rhs) = delete;
+        HttpImpl(const HttpImpl&& rhs) = delete;
+    };  // class HttpIo::HttpImpl
+
+    HttpIo::HttpImpl::HttpImpl(const std::string& url, size_t blockSize)
+        : Impl(url, blockSize)
+        , hostInfo_(Exiv2::Uri::Parse(url))
     {
-        hostInfo_ = Exiv2::Uri::Parse(url);
         Exiv2::Uri::Decode(hostInfo_);
     }
 #ifdef EXV_UNICODE_PATH
@@ -2211,10 +2221,12 @@ namespace Exiv2 {
                 http://dev.exiv2.org/wiki/exiv2
          */
         void writeRemote(const byte* data, size_t size, long from, long to);
-    protected:
-        // NOT IMPLEMENTED
-        CurlImpl(const CurlImpl& rhs); //!< Copy constructor
-        CurlImpl& operator=(const CurlImpl& rhs); //!< Assignment
+
+        CurlImpl& operator=(const CurlImpl& rhs) = delete;
+        CurlImpl& operator=(const CurlImpl&& rhs) = delete;
+        CurlImpl(const CurlImpl& rhs) = delete;
+        CurlImpl(const CurlImpl&& rhs) = delete;
+
     private:
         long timeout_; //!< The number of seconds to wait while trying to connect.
     }; // class RemoteIo::Impl
@@ -2459,11 +2471,11 @@ namespace Exiv2 {
          */
         void writeRemote(const byte* data, size_t size, long from, long to);
 
-    protected:
-        // NOT IMPLEMENTED
-        SshImpl(const SshImpl& rhs); //!< Copy constructor
-        SshImpl& operator=(const SshImpl& rhs); //!< Assignment
-    }; // class RemoteIo::Impl
+        SshImpl& operator=(const SshImpl& rhs) = delete;
+        SshImpl& operator=(const SshImpl&& rhs) = delete;
+        SshImpl(const SshImpl& rhs) = delete;
+        SshImpl(const SshImpl&& rhs) = delete;
+    };  // class RemoteIo::Impl
 
     SshIo::SshImpl::SshImpl(const std::string& url, size_t blockSize):Impl(url, blockSize)
     {

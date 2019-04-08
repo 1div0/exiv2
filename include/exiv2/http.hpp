@@ -1,12 +1,11 @@
-#ifndef HTTP_HPP_
-#define HTTP_HPP_
+#pragma once
 
-#include "config.h"
-#include <string>
-#include <map>
-#include <algorithm>
+#include "exiv2lib_export.h"
 
 #include "datasets.hpp"
+
+#include <string>
+
 
 namespace Exiv2 {
     /*!
@@ -18,5 +17,3 @@ namespace Exiv2 {
     */
     EXIV2API int http(Exiv2::Dictionary& request,Exiv2::Dictionary& response,std::string& errors);
 }
-
-#endif

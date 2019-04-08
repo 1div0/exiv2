@@ -40,12 +40,9 @@ foreach(entry ${SAMPLES})
     set_target_properties(${target} PROPERTIES
       COMPILE_FLAGS ${EXTRA_COMPILE_FLAGS})
     list(APPEND APPLICATIONS ${target})
-    add_test( ${target}_test ${target} )
+
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/src) # To find unused.h
     install( TARGETS ${target} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    if (MSVC)
-        set_target_properties(${target} PROPERTIES LINK_FLAGS "/ignore:4099")
-    endif()
 endforeach()
 
 ###################################
@@ -58,7 +55,7 @@ add_executable( getopt-test getopt-test.cpp ../src/utils.cpp ../src/getopt.cpp)
 list(APPEND APPLICATIONS getopt-test)
 target_include_directories(getopt-test PRIVATE ${CMAKE_SOURCE_DIR}/src) # To find utils.hpp
 
-add_executable( metacopy metacopy.cpp ../src/utils.cpp ../src/getopt.cpp)
+add_executable( metacopy metacopy.cpp metacopy.hpp ../src/utils.cpp ../src/getopt.cpp)
 list(APPEND APPLICATIONS metacopy)
 target_include_directories(metacopy PRIVATE ${CMAKE_SOURCE_DIR}/src) # To find utils.hpp
 
@@ -80,7 +77,11 @@ endif()
 if( EXPAT_FOUND )
     add_executable(        geotag    geotag.cpp)
     list(APPEND APPLICATIONS geotag)
-    target_link_libraries( geotag    PRIVATE ${EXPAT_LIBRARIES})
+    target_link_libraries(geotag 
+        PRIVATE
+            exiv2-xmp
+            ${EXPAT_LIBRARIES}
+    )
     target_include_directories(geotag PRIVATE ${EXPAT_INCLUDE_DIR})
     target_include_directories(geotag PRIVATE ${CMAKE_SOURCE_DIR}/src) # To find unused.h
 
@@ -109,7 +110,7 @@ list(APPEND APPLICATIONS remotetest)
 foreach(application ${APPLICATIONS})
     target_link_libraries(${application} PRIVATE exiv2lib)
     if( EXIV2_ENABLE_PNG )
-        target_link_libraries( ${application} PRIVATE ${ZLIB_LIBRARIES} )
+        target_link_libraries(${application} PRIVATE ZLIB::ZLIB)
     endif()
     if (MSVC)
         set_target_properties(${application} PROPERTIES LINK_FLAGS "/ignore:4099")

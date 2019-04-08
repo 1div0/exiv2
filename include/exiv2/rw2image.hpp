@@ -24,17 +24,13 @@
            <a href="mailto:ahuggel@gmx.net">ahuggel@gmx.net</a>
   @date    06-Jan-09, ahu: created
  */
-#ifndef RW2IMAGE_HPP_
-#define RW2IMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "image.hpp"
-#include "basicio.hpp"
-#include "types.hpp"
-
-// + standard includes
-#include <string>
 
 // *****************************************************************************
 // namespace extensions
@@ -42,11 +38,6 @@ namespace Exiv2 {
 
 // *****************************************************************************
 // class definitions
-
-    // Add RW2 to the supported image formats
-    namespace ImageType {
-        const int rw2 = 16;             //!< RW2 image type (see class Rw2Image)
-    }
 
     /*!
       @brief Class to access raw Panasonic RW2 images.  Exif metadata is
@@ -74,47 +65,42 @@ namespace Exiv2 {
 
         //! @name Manipulators
         //@{
-        void printStructure(std::ostream& out, PrintStructureOption option,int depth);
-        void readMetadata();
+        void printStructure(std::ostream& out, PrintStructureOption option,int depth) override;
+        void readMetadata() override;
         /*!
           @brief Todo: Write metadata back to the image. This method is not
               yet implemented. Calling it will throw an Error(kerWritingImageFormatUnsupported).
          */
-        void writeMetadata();
+        void writeMetadata() override;
         /*!
           @brief Todo: Not supported yet, requires writeMetadata(). Calling
               this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setExifData(const ExifData& exifData);
+        void setExifData(const ExifData& exifData) override;
         /*!
           @brief Todo: Not supported yet, requires writeMetadata(). Calling
               this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setIptcData(const IptcData& iptcData);
+        void setIptcData(const IptcData& iptcData) override;
         /*!
           @brief Not supported. RW2 format does not contain a comment.
               Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
+        void setComment(const std::string& comment) override;
         //@}
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
-        int pixelWidth() const;
-        int pixelHeight() const;
+        std::string mimeType() const override;
+        int pixelWidth() const override;
+        int pixelHeight() const override;
         //@}
 
-    private:
-        //! @name NOT implemented
-        //@{
-        //! Copy constructor
-        Rw2Image(const Rw2Image& rhs);
-        //! Assignment operator
-        Rw2Image& operator=(const Rw2Image& rhs);
-        //@}
-
-    }; // class Rw2Image
+        Rw2Image& operator=(const Rw2Image& rhs) = delete;
+        Rw2Image& operator=(const Rw2Image&& rhs) = delete;
+        Rw2Image(const Rw2Image& rhs) = delete;
+        Rw2Image(const Rw2Image&& rhs) = delete;
+    };  // class Rw2Image
 
     /*!
       @brief Stateless parser class for data in RW2 format. Images use this
@@ -154,5 +140,3 @@ namespace Exiv2 {
     EXIV2API bool isRw2Type(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef RW2IMAGE_HPP_

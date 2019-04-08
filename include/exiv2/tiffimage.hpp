@@ -17,21 +17,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, 5th Floor, Boston, MA 02110-1301 USA.
  */
-/*
-  File:      tiffimage.hpp
- */
 
-#ifndef TIFFIMAGE_HPP_
-#define TIFFIMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "image.hpp"
-#include "basicio.hpp"
-#include "types.hpp"
-
-// + standard includes
-#include <string>
 
 // *****************************************************************************
 // namespace extensions
@@ -39,17 +32,6 @@ namespace Exiv2 {
 
 // *****************************************************************************
 // class definitions
-
-    // Add TIFF to the supported image formats
-    namespace ImageType {
-        const int tiff = 4;          //!< TIFF image type (see class TiffImage)
-        const int dng = 4;           //!< DNG image type (see class TiffImage)
-        const int nef = 4;           //!< NEF image type (see class TiffImage)
-        const int pef = 4;           //!< PEF image type (see class TiffImage)
-        const int arw = 4;           //!< ARW image type (see class TiffImage)
-        const int sr2 = 4;           //!< SR2 image type (see class TiffImage)
-        const int srw = 4;           //!< SRW image type (see class TiffImage)
-    }
 
     /*!
       @brief Class to access TIFF images. Exif metadata is
@@ -79,8 +61,8 @@ namespace Exiv2 {
 
         //! @name Manipulators
         //@{
-        void readMetadata();
-        void writeMetadata();
+        void readMetadata() override;
+        void writeMetadata() override;
 
         /*!
           @brief Print out the structure of image file.
@@ -88,31 +70,28 @@ namespace Exiv2 {
                 not valid (does not look like data of the specific image type).
           @warning This function is not thread safe and intended for exiv2 -p{S|R} as a file debugging aid
          */
-        virtual void printStructure(std::ostream& out, PrintStructureOption option,int depth=0);
+        virtual void printStructure(std::ostream& out, PrintStructureOption option,int depth=0) override;
 
         /*!
           @brief Not supported. TIFF format does not contain a comment.
               Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
+        void setComment(const std::string& comment) override;
         //@}
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
-        int pixelWidth() const;
-        int pixelHeight() const;
+        std::string mimeType() const override;
+        int pixelWidth() const override;
+        int pixelHeight() const override;
         //@}
+
+        TiffImage& operator=(const TiffImage& rhs) = delete;
+        TiffImage& operator=(const TiffImage&& rhs) = delete;
+        TiffImage(const TiffImage& rhs) = delete;
+        TiffImage(const TiffImage&& rhs) = delete;
 
     private:
-        //! @name NOT Implemented
-        //@{
-        //! Copy constructor
-        TiffImage(const TiffImage& rhs);
-        //! Assignment operator
-        TiffImage& operator=(const TiffImage& rhs);
-        //@}
-
         //! @name Accessors
         //@{
         //! Return the group name of the group with the primary image.
@@ -123,7 +102,9 @@ namespace Exiv2 {
         // DATA
         mutable std::string primaryGroup_;     //!< The primary group
         mutable std::string mimeType_;         //!< The MIME type
+        // cppcheck-suppress duplInheritedMember
         mutable int pixelWidth_;               //!< Width of the primary image in pixels
+        // cppcheck-suppress duplInheritedMember
         mutable int pixelHeight_;              //!< Height of the primary image in pixels
 
     }; // class TiffImage
@@ -216,5 +197,3 @@ namespace Exiv2 {
     EXIV2API bool isTiffType(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef TIFFIMAGE_HPP_

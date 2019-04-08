@@ -1,9 +1,4 @@
-
 #include "bigtiffimage.hpp"
-
-#include <cassert>
-#include <cstdint>
-#include <limits>
 
 #include "safe_op.hpp"
 #include "exif.hpp"
@@ -11,6 +6,9 @@
 #include "image_int.hpp"
 #include "enforce.hpp"
 
+#include <cassert>
+#include <limits>
+#include <iostream>
 
 namespace Exiv2
 {
@@ -150,11 +148,10 @@ namespace Exiv2
             public:
                 BigTiffImage(BasicIo::UniquePtr io):
                     Image(ImageType::bigtiff, mdExif, std::move(io)),
-                    header_(),
+                    header_(readHeader(Image::io())),
                     dataSize_(0),
                     doSwap_(false)
                 {
-                    header_ = readHeader(Image::io());
                     assert(header_.isValid());
 
                     doSwap_ =  (isLittleEndianPlatform() && header_.byteOrder() == bigEndian)
@@ -412,8 +409,6 @@ namespace Exiv2
 
                     if ( bPrint )
                         out << Internal::indent(depth) << "END " << io.path() << std::endl;
-
-                    depth--;
                 }
 
                 uint64_t readData(int size) const

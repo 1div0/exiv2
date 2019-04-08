@@ -25,13 +25,13 @@
   @date    15-Jan-04, ahu: created<BR>
            11-Feb-04, ahu: isolated as a component
  */
-#ifndef TAGS_HPP_
-#define TAGS_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "metadatum.hpp"
-#include "types.hpp"
 
 // + standard includes
 #include <string>
@@ -104,14 +104,13 @@ namespace Exiv2 {
 
     //! Access to Exif group and tag lists and misc. tag reference methods, implemented as a static class.
     class EXIV2API ExifTags {
-        //! Prevent construction: not implemented.
-        ExifTags();
-        //! Prevent copy-construction: not implemented.
-        ExifTags(const ExifTags& rhs);
-        //! Prevent assignment: not implemented.
-        ExifTags& operator=(const ExifTags& rhs);
-
     public:
+        ExifTags() = delete;
+        ExifTags& operator=(const ExifTags& rhs) = delete;
+        ExifTags& operator=(const ExifTags&& rhs) = delete;
+        ExifTags(const ExifTags& rhs) = delete;
+        ExifTags(const ExifTags&& rhs) = delete;
+
         //! Return read-only list of built-in groups
         static const GroupInfo* groupList();
         //! Return read-only list of built-in \em groupName tags.
@@ -181,7 +180,7 @@ namespace Exiv2 {
         //! Copy constructor
         ExifKey(const ExifKey& rhs);
         //! Destructor
-        virtual ~ExifKey();
+        ~ExifKey() override;
         //@}
 
         //! @name Manipulators
@@ -196,14 +195,14 @@ namespace Exiv2 {
 
         //! @name Accessors
         //@{
-        virtual std::string key() const;
-        virtual const char* familyName() const;
-        virtual std::string groupName() const;
+        std::string key() const override;
+        const char* familyName() const override;
+        std::string groupName() const override;
         //! Return the IFD id as an integer. (Do not use, this is meant for library internal use.)
         int ifdId() const;
-        virtual std::string tagName() const;
-        virtual uint16_t tag() const;
-        virtual std::string tagLabel() const;
+        std::string tagName() const override;
+        uint16_t tag() const override;
+        std::string tagLabel() const override;
         //! Return the tag description.
         std::string tagDesc() const;        // Todo: should be in the base class
         //! Return the default type id for this tag.
@@ -216,7 +215,7 @@ namespace Exiv2 {
 
     private:
         //! Internal virtual copy constructor.
-        virtual ExifKey* clone_() const;
+        ExifKey* clone_() const override;
 
     private:
         // Pimpl idiom
@@ -232,5 +231,3 @@ namespace Exiv2 {
     EXIV2API std::ostream& operator<<(std::ostream& os, const TagInfo& ti);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef TAGS_HPP_

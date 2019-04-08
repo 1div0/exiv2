@@ -18,22 +18,13 @@
  * Foundation, Inc., 51 Franklin Street, 5th Floor, Boston, MA 02110-1301 USA.
  */
 
-/*
-  File:      jp2image.cpp
-*/
-
-#ifndef JP2IMAGE_HPP_
-#define JP2IMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
-// included header files
-#include "exif.hpp"
-#include "iptc.hpp"
-#include "image.hpp"
-#include "types.hpp"
+#include "exiv2lib_export.h"
 
-// + standard includes
-#include <string>
+// included header files
+#include "image.hpp"
 
 // *****************************************************************************
 // namespace extensions
@@ -42,12 +33,6 @@ namespace Exiv2
 
 // *****************************************************************************
 // class definitions
-
-    // Add JPEG-2000 to the supported image formats
-    namespace ImageType
-    {
-        const int jp2 = 15;                     //!< JPEG-2000 image type
-    }
 
     /*!
       @brief Class to access JPEG-2000 images.
@@ -75,8 +60,8 @@ namespace Exiv2
 
         //! @name Manipulators
         //@{
-        void readMetadata();
-        void writeMetadata();
+        void readMetadata() override;
+        void writeMetadata() override;
 
         /*!
           @brief Print out the structure of image file.
@@ -84,27 +69,26 @@ namespace Exiv2
                 not valid (does not look like data of the specific image type).
           @warning This function is not thread safe and intended for exiv2 -pS for debugging.
          */
-        void printStructure(std::ostream& out, PrintStructureOption option,int depth);
+        void printStructure(std::ostream& out, PrintStructureOption option,int depth) override;
 
         /*!
           @brief Todo: Not supported yet(?). Calling this function will throw
               an instance of Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
+        void setComment(const std::string& comment) override;
         //@}
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
+        std::string mimeType() const override;
         //@}
 
+        Jp2Image& operator=(const Jp2Image& rhs) = delete;
+        Jp2Image& operator=(const Jp2Image&& rhs) = delete;
+        Jp2Image(const Jp2Image& rhs) = delete;
+        Jp2Image(const Jp2Image&& rhs) = delete;
+
     private:
-        //! @name NOT Implemented
-        //@{
-        //! Copy constructor
-        Jp2Image(const Jp2Image& rhs);
-        //! Assignment operator
-        Jp2Image& operator=(const Jp2Image& rhs);
         /*!
           @brief Provides the main implementation of writeMetadata() by
                 writing all buffered metadata to the provided BasicIo.
@@ -140,5 +124,3 @@ namespace Exiv2
     EXIV2API bool isJp2Type(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef JP2IMAGE_HPP_

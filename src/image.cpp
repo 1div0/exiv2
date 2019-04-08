@@ -57,12 +57,6 @@
 #include "jp2image.hpp"
 #include "nikonmn_int.hpp"
 
-#ifdef EXV_ENABLE_VIDEO
-#include "matroskavideo.hpp"
-#include "quicktimevideo.hpp"
-#include "riffvideo.hpp"
-#include "asfvideo.hpp"
-#endif // EXV_ENABLE_VIDEO
 #include "rw2image.hpp"
 #include "pgfimage.hpp"
 #include "xmpsidecar.hpp"
@@ -92,10 +86,11 @@ namespace {
     //! Struct for storing image types and function pointers.
     struct Registry {
         //! Comparison operator to compare a Registry structure with an image type
-        bool operator==(const int& imageType) const { return imageType == imageType_; }
+        bool operator==(const ImageType& imageType) const
+        { return imageType == imageType_; }
 
         // DATA
-        int            imageType_;
+        ImageType      imageType_;
         NewInstanceFct newInstance_;
         IsThisTypeFct  isThisType_;
         AccessMode     exifSupport_;
@@ -104,6 +99,7 @@ namespace {
         AccessMode     commentSupport_;
     };
 
+    /// \todo Use std::unordered_map for implementing the registry. Avoid to use ImageType::none
     const Registry registry[] = {
         //image type       creation fct     type check  Exif mode    IPTC mode    XMP mode     Comment mode
         //---------------  ---------------  ----------  -----------  -----------  -----------  ------------
@@ -128,7 +124,6 @@ namespace {
 #endif // EXV_HAVE_LIBZ
         { ImageType::pgf,  newPgfInstance,  isPgfType,  amReadWrite, amReadWrite, amReadWrite, amReadWrite },
         { ImageType::raf,  newRafInstance,  isRafType,  amRead,      amRead,      amRead,      amNone      },
-        { ImageType::eps,  newEpsInstance,  isEpsType,  amNone,      amNone,      amReadWrite, amNone      },
         { ImageType::xmp,  newXmpInstance,  isXmpType,  amReadWrite, amReadWrite, amReadWrite, amNone      },
         { ImageType::gif,  newGifInstance,  isGifType,  amNone,      amNone,      amNone,      amNone      },
         { ImageType::psd,  newPsdInstance,  isPsdType,  amRead,      amRead,      amRead,      amNone      },
@@ -154,13 +149,11 @@ namespace {
 // class member definitions
 namespace Exiv2 {
 
-    Image::Image(int              imageType,
-                 uint16_t         supportedMetadata,
-                 BasicIo::UniquePtr io)
+    Image::Image(ImageType type, uint16_t supportedMetadata, BasicIo::UniquePtr io)
         : io_(std::move(io)),
           pixelWidth_(0),
           pixelHeight_(0),
-          imageType_(imageType),
+          imageType_(type),
           supportedMetadata_(supportedMetadata),
 #ifdef EXV_HAVE_XMP_TOOLKIT
           writeXmpFromPacket_(false),
@@ -358,11 +351,13 @@ namespace Exiv2 {
             uint16_t   dirLength = byteSwap2(dir,0,bSwap);
 
             bool tooBig = dirLength > 500;
-            if ( tooBig ) throw Error(kerTiffDirectoryTooLarge);
+            if ( tooBig ) {
+                out << Internal::indent(depth) << "dirLength = " << dirLength << std::endl;
+                throw Error(kerTiffDirectoryTooLarge);
+            }
 
             if ( bFirst && bPrint ) {
                 out << Internal::indent(depth) << Internal::stringFormat("STRUCTURE OF TIFF FILE (%c%c): ",c,c) << io.path() << std::endl;
-                if ( tooBig ) out << Internal::indent(depth) << "dirLength = " << dirLength << std::endl;
             }
 
             // Read the dictionary
@@ -460,8 +455,8 @@ namespace Exiv2 {
                     if ( option == kpsRecursive && (tag == 0x8769 /* ExifTag */ || tag == 0x014a/*SubIFDs*/  || type == tiffIfd) ) {
                         for ( size_t k = 0 ; k < count ; k++ ) {
                             size_t   restore = io.tell();
-                            uint32_t offset = byteSwap4(buf,k*size,bSwap);
-                            printIFDStructure(io,out,option,offset,bSwap,c,depth);
+                            uint32_t offset2 = byteSwap4(buf,k*size,bSwap);
+                            printIFDStructure(io,out,option,offset2,bSwap,c,depth);
                             io.seek(restore,BasicIo::beg);
                         }
                     } else if ( option == kpsRecursive && tag == 0x83bb /* IPTCNAA */ ) {
@@ -490,11 +485,11 @@ namespace Exiv2 {
                         bytes[jump]=0               ;
                         if ( ::strcmp("Nikon",chars) == 0 ) {
                             // tag is an embedded tiff
-                            byte* bytes=new byte[count-jump] ;  // allocate memory
-                            io.read(bytes,count-jump)        ;  // read
-                            MemIo memIo(bytes,count-jump)    ;  // create a file
+                            byte* bytes2=new byte[count-jump] ;  // allocate memory
+                            io.read(bytes2,count-jump)        ;  // read
+                            MemIo memIo(bytes2,count-jump)    ;  // create a file
                             printTiffStructure(memIo,out,option,depth);
-                            delete[] bytes                   ;  // free
+                            delete[] bytes2                   ;  // free
                         } else {
                             // tag is an IFD
                             io.seek(0,BasicIo::beg);  // position
@@ -777,10 +772,11 @@ namespace Exiv2 {
         return tags_[tag] ;
     }
 
-    AccessMode ImageFactory::checkMode(int type, MetadataId metadataId)
+    AccessMode ImageFactory::checkMode(ImageType type, MetadataId metadataId)
     {
         const Registry* r = find(registry, type);
-        if (!r) throw Error(kerUnsupportedImageType, type);
+        if (!r)
+            throw Error(kerUnsupportedImageType, static_cast<int>(type));
         AccessMode am = amNone;
         switch (metadataId) {
         case mdNone:
@@ -804,38 +800,39 @@ namespace Exiv2 {
         return am;
     }
 
-    bool ImageFactory::checkType(int type, BasicIo& io, bool advance)
+    bool ImageFactory::checkType(ImageType type, BasicIo& io, bool advance)
     {
         const Registry* r = find(registry, type);
         if (0 != r) {
             return r->isThisType_(io, advance);
         }
         return false;
-    } // ImageFactory::checkType
+    }
 
-    int ImageFactory::getType(const std::string& path)
+    ImageType ImageFactory::getType(const std::string& path)
     {
         FileIo fileIo(path);
         return getType(fileIo);
     }
 
 #ifdef EXV_UNICODE_PATH
-    int ImageFactory::getType(const std::wstring& wpath)
+    ImageType ImageFactory::getType(const std::wstring& wpath)
     {
         FileIo fileIo(wpath);
         return getType(fileIo);
     }
 
 #endif
-    int ImageFactory::getType(const byte* data, long size)
+    ImageType ImageFactory::getType(const byte* data, long size)
     {
         MemIo memIo(data, size);
         return getType(memIo);
     }
 
-    int ImageFactory::getType(BasicIo& io)
+    ImageType ImageFactory::getType(BasicIo& io)
     {
-        if (io.open() != 0) return ImageType::none;
+        if (io.open() != 0)
+            return ImageType::none;
         IoCloser closer(io);
         for (unsigned int i = 0; registry[i].imageType_ != ImageType::none; ++i) {
             if (registry[i].isThisType_(io, false)) {
@@ -843,7 +840,7 @@ namespace Exiv2 {
             }
         }
         return ImageType::none;
-    } // ImageFactory::getType
+    }
 
     BasicIo::UniquePtr ImageFactory::createIo(const std::string& path, bool useCurl)
     {
@@ -871,7 +868,7 @@ namespace Exiv2 {
         return BasicIo::UniquePtr(new FileIo(path));
 
         (void)(useCurl);
-    } // ImageFactory::createIo
+    }
 
 #ifdef EXV_UNICODE_PATH
     BasicIo::UniquePtr ImageFactory::createIo(const std::wstring& wpath, bool useCurl)
@@ -894,7 +891,7 @@ namespace Exiv2 {
         if (fProt == pStdin || fProt == pDataUri)
             return BasicIo::UniquePtr(new XPathIo(wpath)); // may throw
         return BasicIo::UniquePtr(new FileIo(wpath));
-    } // ImageFactory::createIo
+    }
 #endif
     Image::UniquePtr ImageFactory::open(const std::string& path, bool useCurl)
     {
@@ -931,10 +928,9 @@ namespace Exiv2 {
             }
         }
         return Image::UniquePtr();
-    } // ImageFactory::open
+    }
 
-    Image::UniquePtr ImageFactory::create(int type,
-                                        const std::string& path)
+    Image::UniquePtr ImageFactory::create(ImageType type, const std::string& path)
     {
         std::unique_ptr<FileIo> fileIo(new FileIo(path));
         // Create or overwrite the file, then close it
@@ -945,12 +941,12 @@ namespace Exiv2 {
         BasicIo::UniquePtr io(std::move(fileIo));
         Image::UniquePtr image = create(type, std::move(io));
         if (!image)
-            throw Error(kerUnsupportedImageType, type);
+            throw Error(kerUnsupportedImageType, static_cast<int>(type));
         return image;
     }
 
 #ifdef EXV_UNICODE_PATH
-    Image::UniquePtr ImageFactory::create(int type,
+    Image::UniquePtr ImageFactory::create(ImageType type,
                                         const std::wstring& wpath)
     {
         std::unique_ptr<FileIo> fileIo(new FileIo(wpath));
@@ -959,31 +955,34 @@ namespace Exiv2 {
             throw WError(kerFileOpenFailed, wpath, "w+b", strError().c_str());
         }
         fileIo->close();
-        BasicIo::UniquePtr io(fileIo);
-        Image::UniquePtr image = create(type, io);
-        if (image.get() == 0) throw Error(kerUnsupportedImageType, type);
+        BasicIo::UniquePtr io(std::move(fileIo));
+        Image::UniquePtr image = create(type, std::move(io));
+        if (image.get() == 0) throw Error(kerUnsupportedImageType, static_cast<int>(type));
         return image;
     }
 
 #endif
-    Image::UniquePtr ImageFactory::create(int type)
+    Image::UniquePtr ImageFactory::create(ImageType type)
     {
         BasicIo::UniquePtr io(new MemIo);
         Image::UniquePtr image = create(type, std::move(io));
-        if (image.get() == 0) throw Error(kerUnsupportedImageType, type);
+        if (image.get() == 0) {
+            throw Error(kerUnsupportedImageType, static_cast<int>(type));
+        }
         return image;
     }
 
-    Image::UniquePtr ImageFactory::create(int type,
-                                        BasicIo::UniquePtr io)
+    Image::UniquePtr ImageFactory::create(ImageType type, BasicIo::UniquePtr io)
     {
         // BasicIo instance does not need to be open
         const Registry* r = find(registry, type);
-        if (0 != r) {
-            return r->newInstance_(std::move(io), true);
+
+        if (r == nullptr || type == ImageType::none) {
+            return Image::UniquePtr();
         }
-        return Image::UniquePtr();
-    } // ImageFactory::create
+
+        return r->newInstance_(std::move(io), true);
+    }
 
 // *****************************************************************************
 // template, inline and free functions
@@ -999,6 +998,6 @@ namespace Exiv2 {
             blob.resize(size + len);
             std::memcpy(&blob[size], buf, len);
         }
-    } // append
+    }
 
 }                                       // namespace Exiv2

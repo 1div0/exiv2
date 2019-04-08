@@ -24,12 +24,12 @@
            <a href="mailto:draekko.software+exiv2@gmail.com">draekko.software+exiv2@gmail.com</a>
   @date    29-Jul-16
  */
-#ifndef WEBPIMAGE_HPP
-#define WEBPIMAGE_HPP
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
-#include "exif.hpp"
 #include "image.hpp"
 
 // *****************************************************************************
@@ -38,11 +38,6 @@ namespace Exiv2 {
 
 // *****************************************************************************
 // class definitions
-
-    // Add WEBP to the supported image formats
-    namespace ImageType {
-        const int webp = 23; //!< Treating webp as an image type>
-    }
 
     /*!
       @brief Class to access WEBP video files.
@@ -63,26 +58,31 @@ namespace Exiv2 {
               instance after it is passed to this method. Use the Image::io()
               method to get a temporary reference.
          */
-        WebPImage(BasicIo::UniquePtr io);
+        explicit WebPImage(BasicIo::UniquePtr io);
         //@}
 
         //! @name Manipulators
         //@{
-        void readMetadata();
-        void writeMetadata();
-        void printStructure(std::ostream& out, PrintStructureOption option,int depth);
+        void readMetadata() override;
+        void writeMetadata() override;
+        void printStructure(std::ostream& out, PrintStructureOption option,int depth) override;
         //@}
 
         /*!
           @brief Not supported. Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
-        void setIptcData(const IptcData& /*iptcData*/);
+        void setComment(const std::string& comment) override;
+        void setIptcData(const IptcData& /*iptcData*/) override;
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
+        std::string mimeType() const override;
         //@}
+
+        WebPImage& operator=(const WebPImage& rhs) = delete;
+        WebPImage& operator=(const WebPImage&& rhs) = delete;
+        WebPImage(const WebPImage& rhs) = delete;
+        WebPImage(const WebPImage&& rhs) = delete;
 
     private:
         void doWriteMetadata(BasicIo& outIo);
@@ -96,11 +96,6 @@ namespace Exiv2 {
         void inject_VP8X(BasicIo& iIo, bool has_xmp, bool has_exif,
                          bool has_alpha, bool has_icc, int width,
                          int height);
-
-        //! Copy constructor
-        WebPImage(const WebPImage& rhs);
-        //! Assignment operator
-        WebPImage& operator=(const WebPImage& rhs);
         //@}
 
     private:
@@ -138,5 +133,3 @@ namespace Exiv2 {
     EXIV2API bool isWebPType(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // WEBPIMAGE_HPP

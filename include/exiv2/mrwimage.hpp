@@ -25,17 +25,13 @@
            <a href="mailto:ahuggel@gmx.net">ahuggel@gmx.net</a>
   @date    13-May-06, ahu: created
  */
-#ifndef MRWIMAGE_HPP_
-#define MRWIMAGE_HPP_
+#pragma once
 
 // *****************************************************************************
+#include "exiv2lib_export.h"
+
 // included header files
 #include "image.hpp"
-#include "basicio.hpp"
-#include "types.hpp"
-
-// + standard includes
-#include <string>
 
 // *****************************************************************************
 // namespace extensions
@@ -43,11 +39,6 @@ namespace Exiv2 {
 
 // *****************************************************************************
 // class definitions
-
-    // Add MRW to the supported image formats
-    namespace ImageType {
-        const int mrw = 5;          //!< MRW image type (see class MrwImage)
-    }
 
     /*!
       @brief Class to access raw Minolta MRW images. Exif metadata is supported
@@ -77,46 +68,41 @@ namespace Exiv2 {
 
         //! @name Manipulators
         //@{
-        void readMetadata();
+        void readMetadata() override;
         /*!
           @brief Todo: Write metadata back to the image. This method is not
               yet implemented. Calling it will throw an Error(kerWritingImageFormatUnsupported).
          */
-        void writeMetadata();
+        void writeMetadata() override;
         /*!
           @brief Todo: Not supported yet, requires writeMetadata(). Calling
               this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setExifData(const ExifData& exifData);
+        void setExifData(const ExifData& exifData) override;
         /*!
           @brief Todo: Not supported yet, requires writeMetadata(). Calling
               this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setIptcData(const IptcData& iptcData);
+        void setIptcData(const IptcData& iptcData) override;
         /*!
           @brief Not supported. MRW format does not contain a comment.
               Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
+        void setComment(const std::string& comment) override;
         //@}
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
-        int pixelWidth() const;
-        int pixelHeight() const;
+        std::string mimeType() const override;
+        int pixelWidth() const override;
+        int pixelHeight() const override;
         //@}
 
-    private:
-        //! @name NOT Implemented
-        //@{
-        //! Copy constructor
-        MrwImage(const MrwImage& rhs);
-        //! Assignment operator
-        MrwImage& operator=(const MrwImage& rhs);
-        //@}
-
-    }; // class MrwImage
+        MrwImage& operator=(const MrwImage& rhs) = delete;
+        MrwImage& operator=(const MrwImage&& rhs) = delete;
+        MrwImage(const MrwImage& rhs) = delete;
+        MrwImage(const MrwImage&& rhs) = delete;
+    };  // class MrwImage
 
 // *****************************************************************************
 // template, inline and free functions
@@ -134,5 +120,3 @@ namespace Exiv2 {
     EXIV2API bool isMrwType(BasicIo& iIo, bool advance);
 
 }                                       // namespace Exiv2
-
-#endif                                  // #ifndef MRWIMAGE_HPP_

@@ -12,12 +12,6 @@
 
 namespace Exiv2
 {
-
-    namespace ImageType
-    {
-        const int heif = 26;
-    }
-
     /*!
       @brief Class to access HEIF files.
      */

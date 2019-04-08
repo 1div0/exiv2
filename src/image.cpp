@@ -33,7 +33,6 @@
 
 #include "cr2image.hpp"
 #include "crwimage.hpp"
-#include "epsimage.hpp"
 #ifdef EXV_ENABLE_HEIF
 #include "heifimage.hpp"
 #endif // EXV_ENABLE_HEIF

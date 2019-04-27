@@ -33,9 +33,9 @@
 
 #include "cr2image.hpp"
 #include "crwimage.hpp"
-#ifdef EXV_ENABLE_HEIF
+#ifdef EXIV2_ENABLE_HEIF
 #include "heifimage.hpp"
-#endif // EXV_ENABLE_HEIF
+#endif // EXIV2_ENABLE_HEIF
 #include "jpgimage.hpp"
 #include "mrwimage.hpp"
 #ifdef EXIV2_ENABLE_PNG
@@ -135,9 +135,9 @@ namespace {
         { ImageType::asf,  newAsfInstance,  isAsfType,  amNone,      amNone,      amRead,      amNone      },
         { ImageType::mkv,  newMkvInstance,  isMkvType,  amNone,      amNone,      amRead,      amNone      },
 #endif // EXV_ENABLE_VIDEO
-#ifdef EXV_ENABLE_HEIF
+#ifdef EXIV2_ENABLE_HEIF
         { ImageType::heif, newHeifInstance, isHeifType, amRead,      amRead,      amRead,      amNone      },
-#endif // EXV_ENABLE_HEIF
+#endif // EXIV2_ENABLE_HEIF
         // End of list marker
         { ImageType::none, 0,               0,          amNone,      amNone,      amNone,      amNone      }
     };

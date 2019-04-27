@@ -51,7 +51,11 @@
 #include "exiv2/orfimage.hpp"
 #include "exiv2/pgfimage.hpp"
 
+<<<<<<< HEAD
 #ifdef   EXIV2_ENABLE_PNG
+=======
+#ifdef   EXV_HAVE_PNG
+>>>>>>> Replace EXV_HAVE_LIBZ with EXV_HAVE_PNG
 #include "exiv2/pngimage.hpp"
 #endif
 

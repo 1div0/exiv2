@@ -1,12 +1,30 @@
-#ifndef HEIFIMAGE_HPP
-#define HEIFIMAGE_HPP
-
-#include "basicio.hpp"
-#include "exif.hpp"
-#include "image.hpp"
-#include "types.hpp"
-
-#include <string>
+// ***************************************************************** -*- C++ -*-
+/*
+ * Copyright (C) 2004-2019 Exiv2 authors
+ * This program is part of the Exiv2 distribution.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, 5th Floor, Boston, MA 02110-1301 USA.
+ */
+/*!
+  @file    heifimage.hpp
+  @brief   Include HEIF header files.
+  @author  Peter Kovář (1div0)
+           <a href="mailto:peter.kovar@reflexion.tv">peter.kovar@reflexion.tv</a>
+  @date    25-Dec-18, 1div0: created
+ */
+#pragma once
 
 #include <libheif/heif.h>
 
@@ -68,5 +86,3 @@ namespace Exiv2
     //! Check if the file iIo is a HEIF image.
     EXIV2API bool isHeifType(BasicIo& iIo, bool advance);
 }
-
-#endif                                  // HEIFIMAGE_HPP

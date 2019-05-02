@@ -40,6 +40,7 @@
 #include "exiv2/exif.hpp"
 #include "exiv2/futils.hpp"
 #include "exiv2/gifimage.hpp"
+#include "exiv2/heifimage.hpp"
 #include "exiv2/http.hpp"
 #include "exiv2/image.hpp"
 #include "exiv2/ini.hpp"
@@ -51,11 +52,7 @@
 #include "exiv2/orfimage.hpp"
 #include "exiv2/pgfimage.hpp"
 
-<<<<<<< HEAD
 #ifdef   EXIV2_ENABLE_PNG
-=======
-#ifdef   EXV_HAVE_PNG
->>>>>>> Replace EXV_HAVE_LIBZ with EXV_HAVE_PNG
 #include "exiv2/pngimage.hpp"
 #endif
 

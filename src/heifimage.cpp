@@ -1,5 +1,3 @@
-#define DEBUG
-
 #include "config.h"
 
 #include "heifimage.hpp"
@@ -73,4 +71,3 @@ namespace Exiv2
     }
 
 } // namespace Exiv2
-

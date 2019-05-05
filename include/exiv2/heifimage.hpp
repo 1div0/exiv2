@@ -28,6 +28,14 @@
 
 #include <libheif/heif.h>
 
+// *****************************************************************************
+#include "exiv2lib_export.h"
+
+// included header files
+#include "image.hpp"
+
+// *****************************************************************************
+// namespace extensions
 namespace Exiv2
 {
     /*!

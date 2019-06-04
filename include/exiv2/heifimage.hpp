@@ -49,23 +49,30 @@ namespace Exiv2
         HeifImage(BasicIo::UniquePtr io, bool create);
         //@}
 
+        ~HeifImage();
+
         //! @name Manipulators
         //@{
-        void readMetadata();
-        void writeMetadata();
-        void printStructure(std::ostream& out, PrintStructureOption option,int depth);
+        void readMetadata() override;
+        void writeMetadata() override;
+        void printStructure(std::ostream& out, PrintStructureOption option,int depth) override;
         //@}
 
         /*!
           @brief Not supported. Calling this function will throw an Error(kerInvalidSettingForImage).
          */
-        void setComment(const std::string& comment);
-        void setIptcData(const IptcData& /*iptcData*/);
+        void setComment(const std::string& comment) override;
+        //void setIptcData(const IptcData& /*iptcData*/) override;
 
         //! @name Accessors
         //@{
-        std::string mimeType() const;
+        std::string mimeType() const override;
         //@}
+
+        HeifImage& operator=(const HeifImage& rhs) = delete;
+        HeifImage& operator=(const HeifImage&& rhs) = delete;
+        HeifImage(const HeifImage& rhs) = delete;
+        HeifImage(const HeifImage&& rhs) = delete;
 
     private:
         void doWriteMetadata(BasicIo& outIo);
@@ -75,12 +82,6 @@ namespace Exiv2
                              byte *header, long header_size);
         void debugPrintHex(byte *data, long size);
         void decodeChunks(uint64_t filesize);
-
-        //! Copy constructor
-        HeifImage(const HeifImage& rhs);
-        //! Assignment operator
-        HeifImage& operator=(const HeifImage& rhs);
-        //@}
 
     }; //Class HeifImage
 

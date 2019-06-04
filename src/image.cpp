@@ -33,9 +33,9 @@
 
 #include "cr2image.hpp"
 #include "crwimage.hpp"
-#ifdef EXIV2_ENABLE_HEIF
+#ifdef EXV_ENABLE_HEIF
 #include "heifimage.hpp"
-#endif // EXIV2_ENABLE_HEIF
+#endif // EXV_ENABLE_HEIF
 #include "jpgimage.hpp"
 #include "mrwimage.hpp"
 #ifdef EXIV2_ENABLE_PNG
@@ -135,9 +135,9 @@ namespace {
         { ImageType::asf,  newAsfInstance,  isAsfType,  amNone,      amNone,      amRead,      amNone      },
         { ImageType::mkv,  newMkvInstance,  isMkvType,  amNone,      amNone,      amRead,      amNone      },
 #endif // EXV_ENABLE_VIDEO
-#ifdef EXIV2_ENABLE_HEIF
+#ifdef EXV_ENABLE_HEIF
         { ImageType::heif, newHeifInstance, isHeifType, amRead,      amRead,      amRead,      amNone      },
-#endif // EXIV2_ENABLE_HEIF
+#endif // EXV_ENABLE_HEIF
         // End of list marker
         { ImageType::none, 0,               0,          amNone,      amNone,      amNone,      amNone      }
     };
@@ -343,7 +343,7 @@ namespace Exiv2 {
         do {
             // Read top of directory
             const int seekSuccess = !io.seek(start,BasicIo::beg);
-            const long bytesRead = io.read(dir.pData_, 2);
+            const size_t bytesRead = io.read(dir.pData_, 2);
             if (!seekSuccess || bytesRead == 0) {
                 throw Error(kerCorruptedMetadata);
             }
@@ -468,7 +468,7 @@ namespace Exiv2 {
                         io.seek(offset, BasicIo::beg);  // position
                         std::vector<byte> bytes(count) ;  // allocate memory
                         // TODO: once we have C++11 use bytes.data()
-                        const long read_bytes = io.read(&bytes[0], count);
+                        const size_t read_bytes = io.read(&bytes[0], count);
                         io.seek(restore, BasicIo::beg);
                         // TODO: once we have C++11 use bytes.data()
                         IptcData::printStructure(out, makeSliceUntil(&bytes[0], read_bytes), depth);
@@ -546,32 +546,6 @@ namespace Exiv2 {
         clearXmpData();
         clearComment();
         clearIccProfile();
-    }
-
-    ExifData& Image::exifData()
-    {
-        return exifData_;
-    }
-
-    IptcData& Image::iptcData()
-    {
-        return iptcData_;
-    }
-
-    XmpData& Image::xmpData()
-    {
-        return xmpData_;
-    }
-
-    std::string& Image::xmpPacket()
-    {
-        // Serialize the current XMP
-        if (xmpData_.count() > 0 && !writeXmpFromPacket()) {
-            XmpParser::encode(xmpPacket_, xmpData_,
-                              XmpParser::useCompactFormat |
-                              XmpParser::omitAllFormatting);
-        }
-        return xmpPacket_;
     }
 
     void Image::setMetadata(const Image& image)
@@ -664,7 +638,7 @@ namespace Exiv2 {
     {
         if ( bTestValid ) {
             if ( iccProfile.pData_ && ( iccProfile.size_ < (long) sizeof(long)) ) throw Error(kerInvalidIccProfile);
-            long size = iccProfile.pData_ ? getULong(iccProfile.pData_, bigEndian): -1;
+            const size_t size = iccProfile.pData_ ? getULong(iccProfile.pData_, bigEndian): -1;
             if ( size!= iccProfile.size_ ) throw Error(kerInvalidIccProfile);
         }
         iccProfile_ = iccProfile;
@@ -674,6 +648,8 @@ namespace Exiv2 {
     {
         iccProfile_.free();
     }
+
+    bool Image::iccProfileDefined() const { return iccProfile_.size_?true:false;}
 
     void Image::setByteOrder(ByteOrder byteOrder)
     {
@@ -695,14 +671,29 @@ namespace Exiv2 {
         return pixelHeight_;
     }
 
+    ExifData& Image::exifData()
+    {
+        return exifData_;
+    }
+
     const ExifData& Image::exifData() const
     {
         return exifData_;
     }
 
+    IptcData& Image::iptcData()
+    {
+        return iptcData_;
+    }
+
     const IptcData& Image::iptcData() const
     {
         return iptcData_;
+    }
+
+    XmpData& Image::xmpData()
+    {
+        return xmpData_;
     }
 
     const XmpData& Image::xmpData() const
@@ -713,6 +704,15 @@ namespace Exiv2 {
     std::string Image::comment() const
     {
         return comment_;
+    }
+
+    std::string& Image::xmpPacket()
+    {
+        // Serialize the current XMP
+        if (xmpData_.count() > 0 && !writeXmpFromPacket()) {
+            XmpParser::encode(xmpPacket_, xmpData_, XmpParser::useCompactFormat | XmpParser::omitAllFormatting);
+        }
+        return xmpPacket_;
     }
 
     const std::string& Image::xmpPacket() const
@@ -895,7 +895,8 @@ namespace Exiv2 {
     Image::UniquePtr ImageFactory::open(const std::string& path, bool useCurl)
     {
         Image::UniquePtr image = open(ImageFactory::createIo(path, useCurl)); // may throw
-        if (image.get() == 0) throw Error(kerFileContainsUnknownImageType, path);
+        if (image.get() == 0)
+            throw Error(kerFileContainsUnknownImageType, path);
         return image;
     }
 
@@ -908,7 +909,7 @@ namespace Exiv2 {
     }
 
 #endif
-    Image::UniquePtr ImageFactory::open(const byte* data, long size)
+    Image::UniquePtr ImageFactory::open(const byte* data, size_t size)
     {
         BasicIo::UniquePtr io(new MemIo(data, size));
         Image::UniquePtr image = open(std::move(io)); // may throw

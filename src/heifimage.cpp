@@ -21,7 +21,7 @@
 #include <cassert>
 #include <cstdio>
 
-const unsigned char HeifSignature[12] = { 0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63 };
+const unsigned char HeifSignature[] = { 0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63 };
 const unsigned char HeifBlank[] = { 0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63 };
 
 // *****************************************************************************
@@ -84,6 +84,43 @@ namespace Exiv2 {
         {
             if (io_->error() || io_->eof()) throw Error(kerFailedToReadImageData);
             throw Error(kerNotAnImage, "HEIF");
+        }
+
+        std::shared_ptr<heif_context> ctx(heif_context_alloc(),
+                                    [] (heif_context* c) { heif_context_free(c); });
+        if (!ctx) throw Error(kerFailedToReadImageData);
+
+        struct heif_error err;
+        err = heif_context_read_from_file(ctx.get(), io_->path().c_str(), nullptr);
+
+        if (err.code != 0)
+        {
+#ifdef DEBUG
+            std::cerr << "Exiv2::HeifImage::readMetadata: Could not read HEIF file: " << err.message << std::endl;
+#endif
+            throw Error(kerFailedToReadImageData);
+        }
+
+        int numImages = heif_context_get_number_of_top_level_images(ctx.get());
+        heif_item_id* IDs = (heif_item_id*)alloca(numImages * sizeof(heif_item_id));
+        heif_context_get_list_of_top_level_image_IDs(ctx.get(), IDs, numImages);
+
+        for (int i = 0; i < numImages; i++)
+        {
+            struct heif_image_handle* handle;
+            struct heif_error err = heif_context_get_image_handle(ctx.get(), IDs[i], &handle);
+            if (err.code)
+            {
+#ifdef DEBUG
+                std::cerr << "Exiv2::HeifImage::readMetadata: " << err.message << std::endl;
+#endif
+                throw Error(kerFailedToReadImageData);
+            }
+
+            pixelWidth_ = heif_image_handle_get_width(handle);
+            pixelHeight_ = heif_image_handle_get_height(handle);
+
+            heif_image_handle_release(handle);
         }
 
     } // HeifImage::readMetadata

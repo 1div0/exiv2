@@ -182,6 +182,10 @@ if (NOT MSVC)
         target_link_libraries( exiv2lib PRIVATE ${CMAKE_DL_LIBS}) # -ldl = dynamic loader used by src/version.cpp
     endif()
 
+    if ( CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" )
+        target_link_libraries( exiv2lib PRIVATE -lprocstat)
+    endif()
+
     if (CYGWIN OR MINGW OR MSYS)
         target_link_libraries( exiv2lib PRIVATE psapi ws2_32 )
     endif()
@@ -205,6 +209,11 @@ if( EXIV2_ENABLE_NLS )
     target_include_directories(exiv2lib_int PRIVATE ${Intl_INCLUDE_DIRS})
     # Definition needed for translations
     target_compile_definitions(exiv2lib PUBLIC EXV_LOCALEDIR="/../${CMAKE_INSTALL_LOCALEDIR}")
+endif()
+
+if( EXIV2_ENABLE_HEIF )
+    target_include_directories(exiv2lib_int PRIVATE ${HEIF_INCLUDE_DIR})
+    target_link_libraries( exiv2lib PRIVATE ${HEIF_LIBRARY})
 endif()
 
 if( ICONV_FOUND )

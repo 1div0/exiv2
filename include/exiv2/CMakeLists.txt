@@ -13,6 +13,7 @@ install(FILES
             exiv2.hpp
             futils.hpp
             gifimage.hpp
+            heifimage.hpp
             http.hpp
             image.hpp
             image_types.hpp

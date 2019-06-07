@@ -129,12 +129,6 @@ namespace {
         { ImageType::tga,  newTgaInstance,  isTgaType,  amNone,      amNone,      amNone,      amNone      },
         { ImageType::bmp,  newBmpInstance,  isBmpType,  amNone,      amNone,      amNone,      amNone      },
         { ImageType::jp2,  newJp2Instance,  isJp2Type,  amReadWrite, amReadWrite, amReadWrite, amNone      },
-#ifdef EXV_ENABLE_VIDEO
-        { ImageType::qtime,newQTimeInstance,isQTimeType,amRead,      amNone,      amRead,      amNone      },
-        { ImageType::riff, newRiffInstance, isRiffType, amRead,      amNone,      amRead,      amNone      },
-        { ImageType::asf,  newAsfInstance,  isAsfType,  amNone,      amNone,      amRead,      amNone      },
-        { ImageType::mkv,  newMkvInstance,  isMkvType,  amNone,      amNone,      amRead,      amNone      },
-#endif // EXV_ENABLE_VIDEO
 #ifdef EXV_ENABLE_HEIF
         { ImageType::heif, newHeifInstance, isHeifType, amRead,      amRead,      amRead,      amNone      },
 #endif // EXV_ENABLE_HEIF

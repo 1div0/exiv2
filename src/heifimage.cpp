@@ -120,6 +120,36 @@ namespace Exiv2 {
             pixelWidth_ = heif_image_handle_get_width(handle);
             pixelHeight_ = heif_image_handle_get_height(handle);
 
+	    int num_metadata;
+	    heif_item_id metadata_id;
+	    num_metadata = heif_image_handle_get_list_of_metadata_block_IDs(handle, "Exif", &metadata_id, 1);
+
+	    if (num_metadata > 0)
+	    {
+		size_t data_size = heif_image_handle_get_metadata_size(handle, metadata_id);
+
+		uint8_t* data = (uint8_t*) alloca(data_size);
+		err = heif_image_handle_get_metadata(handle, metadata_id, data);
+                if (err.code)
+                {
+#ifdef DEBUG
+                    std::cerr << "Exiv2::HeifImage::readMetadata: " << err.message << std::endl;
+#endif
+                    throw Error(kerFailedToReadImageData);
+                }
+
+		// hexdump (std::cerr, data, data_size);
+
+		ByteOrder bo = ExifParser::decode(exifData_, data + 10, data_size - 10);
+                setByteOrder(bo);
+                if (data_size > 0 && byteOrder() == invalidByteOrder)
+		{
+#ifndef SUPPRESS_WARNINGS
+                    EXV_WARNING << "Failed to decode Exif metadata.\n";
+#endif
+                    exifData_.clear();
+                }
+	    }
             heif_image_handle_release(handle);
         }
 

@@ -34,6 +34,7 @@
 
 #include "cr2image.hpp"
 #include "crwimage.hpp"
+#include "heifimage_int.hpp"
 #include "jpgimage.hpp"
 #include "mrwimage.hpp"
 #ifdef EXIV2_ENABLE_PNG
@@ -103,6 +104,7 @@ namespace {
         { ImageType::exv,  newExvInstance,  isExvType,  amReadWrite, amReadWrite, amReadWrite, amReadWrite },
         { ImageType::cr2,  newCr2Instance,  isCr2Type,  amReadWrite, amReadWrite, amReadWrite, amNone      },
         { ImageType::crw,  newCrwInstance,  isCrwType,  amReadWrite, amNone,      amNone,      amReadWrite },
+        { ImageType::heif, newHeifInstance, isHeifType, amRead,      amRead,      amRead,      amNone      },
         { ImageType::mrw,  newMrwInstance,  isMrwType,  amRead,      amRead,      amRead,      amNone      },
         { ImageType::tiff, newTiffInstance, isTiffType, amReadWrite, amReadWrite, amReadWrite, amNone      },
         { ImageType::webp, newWebPInstance, isWebPType, amReadWrite, amNone,      amReadWrite, amNone      },

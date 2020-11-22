@@ -1,6 +1,6 @@
 // ***************************************************************** -*- C++ -*-
 /*
- * Copyright (C) 2004-2019 Exiv2 authors
+ * Copyright (C) 2004-2020 Exiv2 authors
  * This program is part of the Exiv2 distribution.
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ namespace Exiv2
         dng,
         exv,
         gif,        ///< GIF
+        heif,       ///< HEIF
         jp2,        ///< JPEG-2000
         jpeg,
         mrw,

@@ -210,6 +210,7 @@ namespace Exiv2 {
         kerUnsupportedImageType,
         kerFailedToReadImageData,
         kerNotAJpeg,
+        kerNotAHeif,
         kerFailedToMapFileForReadWrite,
         kerFileRenameFailed,
         kerTransferFailed,

@@ -17,6 +17,7 @@ add_library( exiv2lib_int OBJECT
     cr2header_int.cpp       cr2header_int.hpp
     crwimage_int.cpp        crwimage_int.hpp
     fujimn_int.cpp          fujimn_int.hpp
+    heifimage_int.cpp       heifimage_int.hpp
     helper_functions.cpp    helper_functions.hpp
     image_int.cpp           image_int.hpp
     makernote_int.cpp       makernote_int.hpp

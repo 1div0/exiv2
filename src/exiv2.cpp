@@ -32,11 +32,14 @@
 #include "i18n.h"  // NLS support.
 
 #include <exiv2/futils.hpp>
+#include <exiv2/isobmff.hpp>
 
 int main(int argc, char* const argv[])
 {
     Exiv2::XmpParser::initialize();
     ::atexit(Exiv2::XmpParser::terminate);
+
+    Exiv2::enableISOBMFF();
 
 #ifdef EXV_ENABLE_NLS
     setlocale(LC_ALL, "");

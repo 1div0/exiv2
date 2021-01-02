@@ -17,6 +17,7 @@ install(FILES
             image_types.hpp
             ini.hpp
             iptc.hpp
+            isobmff.hpp
             jp2image.hpp
             jpgimage.hpp
             metadatum.hpp

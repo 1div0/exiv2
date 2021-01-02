@@ -44,12 +44,14 @@
 #include "exiv2/image.hpp"
 #include "exiv2/ini.hpp"
 #include "exiv2/iptc.hpp"
+#include "exiv2/isobmff.hpp"
 #include "exiv2/jp2image.hpp"
 #include "exiv2/jpgimage.hpp"
 #include "exiv2/metadatum.hpp"
 #include "exiv2/mrwimage.hpp"
 #include "exiv2/orfimage.hpp"
 #include "exiv2/pgfimage.hpp"
+#include "exiv2/isobmff.hpp"
 
 #ifdef   EXIV2_ENABLE_PNG
 #include "exiv2/pngimage.hpp"

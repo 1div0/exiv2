@@ -1,6 +1,6 @@
 // ***************************************************************** -*- C++ -*-
 /*
- * Copyright (C) 2004-2019 Exiv2 authors
+ * Copyright (C) 2004-2021 Exiv2 authors
  * This program is part of the Exiv2 distribution.
  *
  * This program is free software; you can redistribute it and/or
@@ -28,13 +28,17 @@ namespace Exiv2
     {
         none,
         arw,
+        avif,       ///< AV1 Image File Format
         bigtiff,
+        bmff,       ///< ISO/IEC Base Media File Format
         bmp,        ///< Windows bitmap
         cr2,
+        cr3,
         crw,
         dng,
         exv,
         gif,        ///< GIF
+        heif,       ///< High Efficiency Image Format
         jp2,        ///< JPEG-2000
         jpeg,
         mrw,

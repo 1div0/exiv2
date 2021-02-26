@@ -68,7 +68,7 @@ struct BmffBoxHeader
 #define TAG_infe 0x696e6665 /**< "infe" Item Info Extention */
 #define TAG_ipma 0x69706d61 /**< "ipma" Item Property Association */
 #define TAG_cmt1 0x434d5431 /**< "CMT1" ifd0Id */
-#define TAG_cmt2 0x434D5432 /**< "CMD2" exifID */
+#define TAG_cmt2 0x434D5432 /**< "CMT2" exifID */
 #define TAG_cmt3 0x434D5433 /**< "CMT3" canonID */
 #define TAG_cmt4 0x434D5434 /**< "CMT4" gpsID */
 
@@ -269,6 +269,10 @@ namespace Exiv2
                 if (name.find("Exif") == 0) {  // "Exif" or "ExifExif"
                     exifID_ = ID;
                 }
+                if (name.find("mime\0xmp") == 0) {
+                    xmpID_ = ID;
+                }
+
 #ifdef EXIV2_DEBUG_MESSAGES
                 std::cerr << Internal::stringFormat("%3d ", ID) << name << " ";
 #endif
@@ -293,6 +297,14 @@ namespace Exiv2
 #endif
                     parseTiff(Internal::Tag::root,iloc.length_,iloc.start_);
                     exifID_ = unknownID_; // don't do this again!
+                }
+                if (box.type == TAG_meta && ilocs_.find(xmpID_) != ilocs_.end()) {
+                    const Iloc& iloc = ilocs_.find(xmpID_)->second;
+#ifdef EXIV2_DEBUG_MESSAGES
+                    std::cerr << indent(depth) << "Exiv2::BMFF xmp: " << iloc.toString() << std::endl;
+#endif
+                    parseXMP(iloc.length_,iloc.start_);
+                    xmpID_ = unknownID_; // don't do this again!
                 }
             } break;
 
@@ -437,6 +449,18 @@ namespace Exiv2
         }
     }
 
+    void BmffImage::parseXMP(uint32_t length,uint32_t start)
+    {
+        // read and parse xmp data
+        long    restore = io_->tell();
+        DataBuf xmp(length);
+        io_->seek(start,BasicIo::beg);
+        if ( io_->read(xmp.pData_,xmp.size_) == xmp.size_ ) {
+            XmpParser::decode(xmpData_, (char*) xmp.pData_ );
+        }
+        io_->seek(restore,BasicIo::beg);
+    }
+
     void BmffImage::setComment(const std::string& /*comment*/)
     {
         // bmff files are read-only
@@ -461,6 +485,7 @@ namespace Exiv2
 
         unknownID_ = 0xffff;
         exifID_ = unknownID_;
+        xmpID_  = unknownID_;
 
         long address = 0;
         while (address < (long)io_->size()) {
